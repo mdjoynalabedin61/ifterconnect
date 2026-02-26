@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#1E1E1E">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=instant_mix" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+    
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+<style>
+    
+#loader-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #105D4D;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999999;
+}
+
+
+.loader {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #3498db;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+</style>
+</head>
+<body>
+<div id="loader-wrapper">
+        <div class="loader"></div>
+        <p style="margin-top:10px;color:white">লোড হচ্ছে...</p>
+        <p style="margin-top:-5px;color:white">অনুগ্রহপূর্বক অপেক্ষা করুন...</p>
+    </div>
+    
+    
+<div class="topNavbar">
+<div class="leftside">
+<div class="words">
+<span>পাবনা জেলার জন্য।</span>
+<span id="dateText">তারিখ লোডিং...</span>
+<span id="dayText">বার লোডিং...</span>
+<span id="ramadanText">রোজা লোডিং...</span>
+<span id="sehriVal">সেহরি: --:--</span>
+<span id="iftarVal">ইফতার: --:--</span>
+
+<span>পাবনা জেলার জন্য</span>
+</div>
+</div>
+<div class="righside">
+<p id="timerLabel">
+অপেক্ষা করুন
+</p>
+<p id="ifterandsehritime">
+০০:০০:০০
+</p>
+</div>
+</div>
+
+<div id="map"></div>
+
+<div class="search-box">
+<input type="text" id="searchInput" placeholder="মসজিদ বা এলাকা খুঁজুন...">
+<button id="searchBtn"><span class="material-symbols-outlined">
+map_search
+</span> খুঁজুন</button>
+</div>
+
+<button class="fabbuttontwo show-modal" id="fabbuttontwo"><span class="material-symbols-outlined">
+instant_mix
+</span></button>
+
+<button class="fab" id="openAddBtn">+</button>
+
+<div id="add-form" style="margin-top:20px">
+   <span class="material-symbols-outlined"style="position:fixed;right:10px;top:10px;background-color:#dddddd;border-radius:50%"id="cancelBtnTwo">close
+</span>
+<h3 style="margin-top:10px; color:#2e7d32;">ইফতারের স্থান</h3>
+<p style="font-size:10px;color:#444444">এই ম্যাপের সীমানা কেবল পাবনা জেলার জন্য প্রযোজ্য। প্রয়োজনীয় তথ্য পূরণ করে, "পয়েন্ট সেট করুন" বাটনে ক্লিক করে সেট করুন যেখানে ইফতার আয়োজনের গন্তব্য </p>
+<hr>
+
+
+            <div class="input-box" style="margin-top:2px">
+            <input id="placeName" type="text" required="true" placeholder="">
+            <span>মসজিদ/প্রতিষ্ঠানের নাম *</span>
+        </div>
+
+
+
+
+
+            <div class="input-box">
+            <input id="isthanerNamearea" type="text" required="true" placeholder="">
+            <span>স্থানের নাম *</span>
+        </div>
+
+
+          <div class="input-box" style="margin-top:2px">
+            <input type="date" id="todaydate" required="true" placeholder="">
+            <span>তারিখ *</span>
+        </div>
+
+
+<select id="iftariOption" style="width:100%;height:50px;outline:none;border:1.5px solid #ddd;border-radius:10px;font-size:15px;color:#444444">
+    <option value="">ইফতার আইটেম</option>
+    <option value="biriyani">বিরিয়ানি(Biriyani)</option>
+      <option value="Chaines">চাইনিজ(Chinese)</option>
+      <option value="Mixed(মিশ্র)"> Mixed(মিশ্র)</option>
+</select>
+            
+
+
+
+
+          <div class="input-box" style="margin-top:5px">
+            <input id="descriptiontopic" type="text" required="true" placeholder="">
+            <span>কিছু কথা(বাংলা)(ঐচ্ছিক) *</span>
+        </div>
+
+
+
+
+
+<button id="startAddBtn" style="width:100%; background:#2e7d32; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">পয়েন্ট সেট করুন</button>
+<button id="cancelBtn" style="margin-top:10px; background:none; border:none; color:red; cursor:pointer;">বাতিল</button>
+
+<div class="hr" style="width:80%;height:2px;background-color:#dddddd;margin:10px 0px;display:flex;margin:0 auto"></div>
+<p>Developed with ❤️ by
+<a href="https://www.facebook.com/joynal.abedin.9987" style="text-decoration:none;color:green">Mohammad Joynal Abedin</a></p>
+</div>
+
+    <div class="bottom-sheet">
+      <div class="sheet-overlay"></div>
+      <div class="content">
+        <div class="header">
+          <div class="drag-icon">
+              <span></span>
+
+          </div>
+                    <div class="toplineOfbottomsheet" style="padding:10px;display:flex;justify-content:space-between;gap:10px">
+              <button>আজ</button>
+<button>আগামীকাল</button>
+<button>পরশু</button>
+<button>Near by me</button>
+          </div>
+        </div>
+        <div class="body">
+       
+
+        </div>
+      </div>
+    </div>
+
+
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script type="module">
+import {
+initializeApp
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import {
+getDatabase,
+ref,
+push,
+onChildAdded,
+onValue,
+update,
+increment
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyCkQVG3RNs1_ocM8FMTVKp4WCNjoPYU-5E",
+authDomain: "ifter-92369.firebaseapp.com",
+databaseURL: "https://ifter-92369-default-rtdb.firebaseio.com/",
+projectId: "ifter-92369",
+storageBucket: "ifter-92369.firebasestorage.app",
+messagingSenderId: "918071750755",
+appId: "1:918071750755:web:3733694c4e9e56fcfa0856"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const placesRef = ref(db, 'iftar_places');
+
+
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // পৃথিবীর ব্যাসার্ধ (km)
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; 
+}
+
+
+
+
+
+
+
+const pabnaCenter = [24.0114, 89.2448];
+const pabnaBounds = [[23.7500, 88.8500], [24.3500, 89.6500]];
+
+const map = L.map('map', {
+center: pabnaCenter,
+zoom: 13,
+minZoom: 10,
+maxBounds: pabnaBounds,
+maxBoundsViscosity: 1.0
+ });
+
+
+
+
+L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+}).addTo(map);
+
+
+
+
+const ramadanData = [
+  { "date": "১৯ ফেব্রুয়ারি", "dayname": "বৃহস্পতিবার", "ramzan": "০১", "sehri": "05:15:00", "iftar": "18:01:00" },
+  { "date": "২০ ফেব্রুয়ারি", "dayname": "শুক্রবার", "ramzan": "০২", "sehri": "05:14:00", "iftar": "18:02:00" },
+  { "date": "২১ ফেব্রুয়ারি", "dayname": "শনিবার", "ramzan": "০৩", "sehri": "05:14:00", "iftar": "18:03:00" },
+  { "date": "২২ ফেব্রুয়ারি", "dayname": "রবিবার", "ramzan": "০৪", "sehri": "05:13:00", "iftar": "18:03:00" },
+  { "date": "২৩ ফেব্রুয়ারি", "dayname": "সোমবার", "ramzan": "০৫", "sehri": "05:12:00", "iftar": "18:04:00" },
+  { "date": "২৪ ফেব্রুয়ারি", "dayname": "মঙ্গলবার", "ramzan": "০৬", "sehri": "05:12:00", "iftar": "18:04:00" },
+  { "date": "২৫ ফেব্রুয়ারি", "dayname": "বুধবার", "ramzan": "০৭", "sehri": "05:11:00", "iftar": "18:05:00" },
+  { "date": "২৬ ফেব্রুয়ারি", "dayname": "বৃহস্পতিবার", "ramzan": "০৮", "sehri": "05:10:00", "iftar": "18:05:00" },
+  { "date": "২৭ ফেব্রুয়ারি", "dayname": "শুক্রবার", "ramzan": "০৯", "sehri": "05:09:00", "iftar": "18:06:00" },
+  { "date": "২৮ ফেব্রুয়ারি", "dayname": "শনিবার", "ramzan": "১০", "sehri": "05:08:00", "iftar": "18:06:00" },
+  { "date": "১ মার্চ", "dayname": "রবিবার", "ramzan": "১১", "sehri": "05:08:00", "iftar": "18:07:00" },
+  { "date": "২ মার্চ", "dayname": "সোমবার", "ramzan": "১২", "sehri": "05:07:00", "iftar": "18:07:00" },
+  { "date": "৩ মার্চ", "dayname": "মঙ্গলবার", "ramzan": "১৩", "sehri": "05:06:00", "iftar": "18:08:00" },
+  { "date": "৪ মার্চ", "dayname": "বুধবার", "ramzan": "১৪", "sehri": "05:05:00", "iftar": "18:08:00" },
+  { "date": "৫ মার্চ", "dayname": "বৃহস্পতিবার", "ramzan": "১৫", "sehri": "05:04:00", "iftar": "18:09:00" },
+  { "date": "৬ মার্চ", "dayname": "শুক্রবার", "ramzan": "১৬", "sehri": "05:03:00", "iftar": "18:09:00" },
+  { "date": "৭ মার্চ", "dayname": "শনিবার", "ramzan": "১৭", "sehri": "05:02:00", "iftar": "18:10:00" },
+  { "date": "৮ মার্চ", "dayname": "রবিবার", "ramzan": "১৮", "sehri": "05:01:00", "iftar": "18:10:00" },
+  { "date": "৯ মার্চ", "dayname": "সোমবার", "ramzan": "১৯", "sehri": "05:01:00", "iftar": "18:11:00" },
+  { "date": "১০ মার্চ", "dayname": "মঙ্গলবার", "ramzan": "২০", "sehri": "05:00:00", "iftar": "18:11:00" },
+  { "date": "১১ মার্চ", "dayname": "বুধবার", "ramzan": "২১", "sehri": "04:59:00", "iftar": "18:11:00" },
+  { "date": "১২ মার্চ", "dayname": "বৃহস্পতিবার", "ramzan": "২২", "sehri": "04:58:00", "iftar": "18:12:00" },
+  { "date": "১৩ মার্চ", "dayname": "শুক্রবার", "ramzan": "২৩", "sehri": "04:57:00", "iftar": "18:12:00" },
+  { "date": "১৪ মার্চ", "dayname": "শনিবার", "ramzan": "২৪", "sehri": "04:56:00", "iftar": "18:13:00" },
+  { "date": "১৫ মার্চ", "dayname": "রবিবার", "ramzan": "২৫", "sehri": "04:55:00", "iftar": "18:13:00" },
+  { "date": "১৬ মার্চ", "dayname": "সোমবার", "ramzan": "২৬", "sehri": "04:54:00", "iftar": "18:14:00" },
+  { "date": "১৭ মার্চ", "dayname": "মঙ্গলবার", "ramzan": "২৭", "sehri": "04:53:00", "iftar": "18:14:00" },
+  { "date": "১৮ মার্চ", "dayname": "বুধবার", "ramzan": "২৮", "sehri": "04:52:00", "iftar": "18:14:00" },
+  { "date": "১৯ মার্চ", "dayname": "বৃহস্পতিবার", "ramzan": "২৯", "sehri": "04:51:00", "iftar": "18:15:00" },
+  { "date": "২০ মার্চ", "dayname": "শুক্রবার", "ramzan": "৩০", "sehri": "04:50:00", "iftar": "18:15:00" }
+];
+
+
+
+function convertTo12HourFormat(time) {
+    if (!time) return "N/A";
+    let [hour,
+        minute] = time.split(":").map(Number);
+    let period = hour >= 12 ? "PM": "AM";
+    hour = hour % 12 || 12;
+    return `${hour}:${minute.toString().padStart(2, '0')} ${period}`;
+}
+
+
+
+    function updateClock() {
+        const now = new Date();
+        const options = { day: 'numeric', month: 'long' };
+        
+        
+        let todayStr = now.toLocaleDateString('bn-BD', options).replace(/,/g, '');
+        todayStr = todayStr.replace("ফেব্রুয়ারী", "ফেব্রুয়ারি"); 
+        
+        const dayName = now.toLocaleDateString('bn-BD', { weekday: 'long' });
+
+        
+        const todayData = ramadanData.find(d => d.date.trim() === todayStr.trim());
+
+        if (!todayData) {
+            document.getElementById('ifterandsehritime').innerText = "আজ কোনো রোজা নেই";
+            return;
+        }
+
+
+        document.getElementById('dateText').innerText ="আজ " + todayStr + " ২০২৬";
+        document.getElementById('dayText').innerText = "রোজ " + dayName;
+        document.getElementById('ramadanText').innerText = todayData.ramzan + " তম রোজা";
+document.getElementById('sehriVal').innerText = "সাহরীঃ "+ convertTo12HourFormat(todayData.sehri) + " সময়";
+document.getElementById('iftarVal').innerText ="ইফতারঃ " + convertTo12HourFormat(todayData.iftar) + " " + " সময়";
+
+
+
+
+            const sehriTime = new Date(now.toDateString() + " " + todayData.sehri);
+        const iftarTime = new Date(now.toDateString() + " " + todayData.iftar);
+
+        let label = "";
+        let displayTime = "";
+
+        if (now < sehriTime) {
+            label = "সেহরির বাকি";
+            displayTime = formatDiff(sehriTime - now);
+        } else if (now < iftarTime) {
+            label = "ইফতারের বাকি";
+            displayTime = formatDiff(iftarTime - now);
+        } else {
+
+        label = "আগামী সেহরির বাকি";
+    
+    
+    const nextSehriTime = new Date(sehriTime);
+    nextSehriTime.setDate(nextSehriTime.getDate() + 1);
+    displayTime = formatDiff(nextSehriTime - now);
+
+            
+        }
+
+        document.getElementById('timerLabel').innerText = label;
+        document.getElementById('ifterandsehritime').innerText = displayTime;
+    }
+
+    function formatDiff(ms) {
+        const hours = Math.floor(ms / (1000 * 60 * 60));
+        const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+        
+        const toBn = (n) => n.toString().padStart(2, '0').replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]);
+        return `${toBn(hours)} ঘণ্টা ${toBn(minutes)} মিনিট ${toBn(seconds)} সেকেন্ড`;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+
+
+
+
+
+
+
+let isAdding = false;
+document.getElementById('openAddBtn').onclick = () => document.getElementById('add-form').style.display = 'block';
+document.getElementById('cancelBtn').onclick = () => {
+document.getElementById('add-form').style.display = 'none'; isAdding = false;
+};
+
+document.getElementById('cancelBtnTwo').onclick = () => {
+document.getElementById('add-form').style.display = 'none';;
+};
+
+
+
+
+document.getElementById('startAddBtn').onclick = () => {
+isAdding = true; document.getElementById('add-form').style.display = 'none'; alert("যেই স্থানে ইফতার, সঠিক সেই স্থানেই ক্লিক করুন,প্রয়োজনে সার্চ করেও স্থানটি সনাক্ত করতে পারেন ।  অতঃপর  কাঙ্খিত ক্লিক করুন। ক্লিক করলে স্থানটি সিলেক্ট হয়ে যাবে। ");
+};
+
+map.on('click', (e) => {
+if (isAdding) {
+    
+const name = document.getElementById('placeName').value || "মসজিদ";
+const isthanerNamearea = document.getElementById("isthanerNamearea").value;
+const todaydate = document.getElementById('todaydate').value;
+const descriptiontopic = document.getElementById('descriptiontopic').value;
+const iftariOption = document.getElementById('iftariOption').value;
+
+push(placesRef, {
+name,isthanerNamearea,todaydate,descriptiontopic,iftariOption, lat: e.latlng.lat, lng: e.latlng.lng, upvotes: 0, downvotes: 0
+});
+isAdding = false; alert("যোগ হয়েছে!");
+}
+});
+
+
+
+
+
+onChildAdded(placesRef, (snapshot) => {
+const data = snapshot.val();
+const key = snapshot.key;
+
+
+const marker = L.marker([data.lat, data.lng]).addTo(map);
+
+const updatePopup = (up, down) => {
+const userChoice = localStorage.getItem(`choice_${key}`); 
+
+const div = document.createElement('div');
+
+div.innerHTML = `
+<div class="iftar-card">
+<div class="iftar-header">
+<div class="iftar-info">
+<h3>${data.name}</h3>
+<p>${data.isthanerNamearea}</p>
+<p>${data.todaydate}</p>
+<p><strong>ইফতার:</strong>${data.iftariOption}</p>
+<p>অক্ষাংশ (Latitude)<strong>${data.lat}</strong></p>
+<p>দ্রাঘিমাংশ (Longitude)<strong>${data.lng}</strong></p>
+</div>
+
+</div>
+
+<div class="vote-section">
+<button class="v-btn upvote ${userChoice === 'up' ? 'active-up': ''}" id="ubtn-${key}">
+            👍 সত্য <span>${up}</span>
+        </button>
+        <button class="v-btn downvote ${userChoice === 'down' ? 'active-down': ''}" id="dbtn-${key}">
+            👎 মিথ্যা <span>${down}</span>
+        </button>
+    </div>
+
+    <div class="comment-section">
+<p id="kichukotha">${data.descriptiontopic}</p>
+    </div>
+</div>
+`;
+
+const handleVote = (type) => {
+const oldChoice = localStorage.getItem(`choice_${key}`);
+if (oldChoice === type) return; 
+
+const updates = {};
+
+if (oldChoice === 'up') updates['upvotes'] = increment(-1);
+if (oldChoice === 'down') updates['downvotes'] = increment(-1);
+
+if (type === 'up') updates['upvotes'] = increment(1);
+if (type === 'down') updates['downvotes'] = increment(1);
+
+update(ref(db, `iftar_places/${key}`), updates);
+localStorage.setItem(`choice_${key}`, type);
+};
+
+div.querySelector(`#ubtn-${key}`).onclick = () => handleVote('up');
+div.querySelector(`#dbtn-${key}`).onclick = () => handleVote('down');
+marker.bindPopup(div);
+};
+
+onValue(ref(db, `iftar_places/${key}`), (s) => {
+const val = s.val();
+updatePopup(val.upvotes || 0, val.downvotes || 0);
+});
+});
+
+
+const sheetBody = document.querySelector(".bottom-sheet .body");
+const filterButtons = document.querySelectorAll(".toplineOfbottomsheet button");
+
+
+
+
+function createIftarCard(data, distanceText = "") {
+    return `
+    <div class="iftar-card" style="width: 100%; height: auto; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; cursor: pointer;" onclick="window.zoomToMarker(${data.lat}, ${data.lng})">
+        <div class="iftar-header">
+            <div class="iftar-info">
+                <h3 style="margin:0; font-size:16px; color:white;">${data.name}</h3>
+                <p style="margin:2px 0; font-size:13px; color:white;">${data.isthanerNamearea}</p>
+                ${distanceText}
+                <p style="margin:2px 0; font-size:12px;">📅 তারিখ: ${data.todaydate}</p>
+                <p style="margin:2px 0; font-size:12px;">🍱 <strong>মেনু:</strong> ${data.iftariOption}</p>
+            </div>
+        </div>
+    </div>`;
+}
+
+
+
+
+
+window.zoomToMarker = (lat, lng) => {
+    map.setView([lat, lng], 17);
+    hideBottomSheet();
+};
+
+
+
+async function loadFilteredData(filterType) {
+    sheetBody.innerHTML = "<p style='text-align:center'>লোড হচ্ছে...</p>";
+
+    let userLat = null;
+    let userLon = null;
+
+    
+    if (filterType === "Near by me") {
+        try {
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+            });
+            userLat = position.coords.latitude;
+            userLon = position.coords.longitude;
+        } catch (error) {
+            alert("লোকেশন পাওয়া যায়নি। অনুগ্রহ করে পারমিশন চেক করুন।");
+            sheetBody.innerHTML = "<p style='text-align:center; color:red;'>লোকেশন এক্সেস পাওয়া যায়নি।</p>";
+            
+            return;
+        }
+    }
+
+    
+    onValue(placesRef, (snapshot) => {
+        sheetBody.innerHTML = "";
+        
+    
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        
+        const tomorrowObj = new Date();
+        tomorrowObj.setDate(now.getDate() + 1);
+        const tomorrow = tomorrowObj.toISOString().split('T')[0];
+
+        let results = [];
+
+        snapshot.forEach((childSnapshot) => {
+            const data = childSnapshot.val();
+            
+            data.key = childSnapshot.key; 
+            
+            let show = false;
+
+    
+            if (filterType === "আজ" && data.todaydate === today) show = true;
+            else if (filterType === "আগামীকাল" && data.todaydate === tomorrow) show = true;
+            else if (filterType === "পরশু" && data.todaydate > tomorrow) show = true;
+            else if (filterType === "Near by me") show = true;
+
+            if (show) {
+                
+                if (userLat && userLon && data.lat && data.lng) {
+                    data.distance = getDistance(userLat, userLon, data.lat, data.lng);
+                } else {
+                    data.distance = Infinity;
+                }
+                results.push(data);
+            }
+        });
+
+    
+        if (filterType === "Near by me") {
+            results.sort((a, b) => a.distance - b.distance);
+        }
+
+        
+        if (results.length > 0) {
+            results.forEach(item => {
+                const distLabel = (item.distance && item.distance !== Infinity) ? 
+                    `<p style='font-size:12px; color:#27ae60; font-weight:bold;'>📍 দূরত্ব: ${item.distance.toFixed(2)} কিমি দূরে</p>` : "";
+                
+                sheetBody.innerHTML += createIftarCard(item, distLabel);
+            });
+        } else {
+            sheetBody.innerHTML = `<p style='text-align:center; color:#666;'>"${filterType}" ফিল্টারে কোনো তথ্য নেই।</p>`;
+        }
+    }, { onlyOnce: true });
+}
+
+
+// বাটন ক্লিক হ্যান্ডলার
+filterButtons.forEach(btn => {
+    btn.onclick = () => {
+        
+        filterButtons.forEach(b => b.style.opacity = "0.5");
+        btn.style.opacity = "1";
+        
+        const type = btn.innerText.trim();
+        loadFilteredData(type);
+    };
+});
+
+
+loadFilteredData("আজ");
+
+
+
+
+
+
+document.getElementById('searchBtn').onclick = async () => {
+const q = document.getElementById('searchInput').value;
+const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}, Pabna`);
+const d = await res.json();
+if (d.length > 0) map.setView([d[0].lat, d[0].lon], 16);
+};
+
+
+
+
+
+
+
+
+
+</script>
+
+<script>
+    
+const showModalBtn = document.getElementById("fabbuttontwo");
+const bottomSheet = document.querySelector(".bottom-sheet");
+const sheetOverlay = bottomSheet.querySelector(".sheet-overlay");
+const sheetContent = bottomSheet.querySelector(".content");
+const dragIcon = bottomSheet.querySelector(".drag-icon");
+
+
+let isDragging = false, startY, startHeight;
+
+
+const showBottomSheet = () => {
+    bottomSheet.classList.add("show");
+    document.body.style.overflowY = "hidden";
+    updateSheetHeight(50);
+}
+
+const updateSheetHeight = (height) => {
+    sheetContent.style.height = `${height}vh`; 
+    bottomSheet.classList.toggle("fullscreen", height === 100);
+}
+
+const hideBottomSheet = () => {
+    bottomSheet.classList.remove("show");
+    document.body.style.overflowY = "auto";
+}
+
+const dragStart = (e) => {
+    isDragging = true;
+    startY = e.pageY || e.touches?.[0].pageY;
+    startHeight = parseInt(sheetContent.style.height);
+    bottomSheet.classList.add("dragging");
+}
+
+
+const dragging = (e) => {
+    if(!isDragging) return;
+    const delta = startY - (e.pageY || e.touches?.[0].pageY);
+    const newHeight = startHeight + delta / window.innerHeight * 100;
+    updateSheetHeight(newHeight);
+}
+
+
+const dragStop = () => {
+    isDragging = false;
+    bottomSheet.classList.remove("dragging");
+    const sheetHeight = parseInt(sheetContent.style.height);
+    sheetHeight < 25 ? hideBottomSheet() : sheetHeight > 75 ? updateSheetHeight(100) : updateSheetHeight(50);
+}
+
+dragIcon.addEventListener("mousedown", dragStart);
+document.addEventListener("mousemove", dragging);
+document.addEventListener("mouseup", dragStop);
+
+dragIcon.addEventListener("touchstart", dragStart);
+document.addEventListener("touchmove", dragging);
+document.addEventListener("touchend", dragStop);
+
+sheetOverlay.addEventListener("click", hideBottomSheet);
+showModalBtn.addEventListener("click", showBottomSheet);
+</script>
+<script>
+    const inputElement = document.getElementById("searchInput");
+const phrases = ["পাবনার কোনো স্থান খুঁজুন...", " পাবনার যেকোনো এলাকা খুঁজুন...", " পাবনার যেকোনো ঠিকানা লিখুন..."]; 
+let phraseIndex = 0;
+let characterIndex = 0;
+let isDeleting = false;
+let typeSpeed = 150;
+
+function typeEffect() {
+  const currentPhrase = phrases[phraseIndex];
+  
+  if (isDeleting) {
+    
+    characterIndex--;
+    typeSpeed = 80;
+  } else {
+    
+    characterIndex++;
+    typeSpeed = 150;
+  }
+
+  inputElement.setAttribute("placeholder", currentPhrase.substring(0, characterIndex));
+
+  
+  if (!isDeleting && characterIndex === currentPhrase.length) {
+    isDeleting = true;
+    typeSpeed = 1000; 
+  } else if (isDeleting && characterIndex === 0) {
+    isDeleting = false;
+    phraseIndex = (phraseIndex + 1) % phrases.length; 
+    typeSpeed = 300;
+  }
+
+  setTimeout(typeEffect, typeSpeed);
+}
+
+
+document.addEventListener("DOMContentLoaded", typeEffect);
+</script>
+
+<script>
+    window.addEventListener("load", function() {
+    const loader = document.getElementById("loader-wrapper");
+    const content = document.getElementById("main-content");
+
+
+  setTimeout(() => {
+        loader.style.display = "none"; 
+         
+    }, 500); 
+});
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker Registered!'))
+        .catch(err => console.log('Registration Failed', err));
+    });
+  }
+</script>
+</body>
+</html>

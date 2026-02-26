@@ -1,0 +1,16 @@
+{
+  "name": "Iftar Finder/Connect - Pabna District",
+  "short_name": "Ifter Connect",
+  "description": "Ifter connect for pabna district",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#324458",
+  "theme_color": "#324458",
+  "icons": [
+    {
+      "src": "iftar.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
